@@ -39,7 +39,7 @@ class MercadoPago
                 'billing_day_proportional'  => false,
                 'transaction_amount'        => $data->amount,
                 'currency_id'               => "BRL"
-            ],
+            ], 
             'back_url'          => ENV('MP_BACK_URL'),
             'payment_methods_allowed' => [
                 'payment_types'     => [ ['id' => 'credit_card'] ],

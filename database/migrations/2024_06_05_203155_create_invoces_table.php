@@ -43,10 +43,7 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->foreign('subscriber_id')
-                ->references('id')
-                ->on('subscribers')
-                ->onDelete('cascade');
+            $table->foreign('subscriber_id')->references('id')->on('subscribers')->onDelete('cascade');
         });
     }
 

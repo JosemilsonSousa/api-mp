@@ -4,8 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSubscriptions_PlansRequest;
 use App\Http\Requests\UpdateSubscriptions_PlansRequest;
+
 use App\Models\SubscriptionPlan as Plan;
 use App\Models\Subscriber;
+use App\Service\MercadoPago;
+
+use Inertia\Inertia;
+use Inertia\Response;
 
 class SubscriptionsPlansController extends Controller
 {
@@ -14,7 +19,7 @@ class SubscriptionsPlansController extends Controller
      */
     public function index()
     {
-        return view('planos', [
+        return Inertia::render('Subscriptions', [
             'plans' => Plan::all()
         ]);
     }
@@ -24,15 +29,45 @@ class SubscriptionsPlansController extends Controller
      */
     public function create()
     {
-        $subscriber = new Subscriber;
-        $subscriber->user_id = 1;
-        $subscriber->church_id = 1;
-        $subscriber->subscription_plan_id = 1;
-        $subscriber->payment_method = 'credit-card';
-        $subscriber->status = 'active';
-        $subscriber->save();
+        $data = (object) [
+            'amount' => "3.00",
+            'reason' => "Assinatura SysEBD - 3",
+            'xIdempotencyKey' => ''
+        ];
 
-        echo $subscriber->id;
+        $back = MercadoPago::createPlan($data);
+
+        $back = json_decode($back);
+
+        $plan = new Plan;
+        $plan->preapproval_plan_id  = $back->id;
+        $plan->back_url             = $back->back_url;
+        $plan->collector_id         = $back->collector_id;
+        $plan->application_id       = $back->application_id;
+        $plan->reason               = $back->reason;
+        $plan->status               = $back->status;
+        $plan->date_created         = $back->date_created;
+        $plan->last_modified        = $back->last_modified;
+        $plan->init_point           = $back->init_point;
+
+        $plan->frequency            = $back->auto_recurring->frequency;
+        $plan->frequency_type       = $back->auto_recurring->frequency_type;
+        $plan->transaction_amount   = $back->auto_recurring->transaction_amount;
+        $plan->currency_id          = $back->auto_recurring->currency_id;
+
+        $plan->save();
+
+        return redirect()->route('dash.planos');
+
+        // $subscriber = new Subscriber;
+        // $subscriber->user_id = 1;
+        // $subscriber->church_id = 1;
+        // $subscriber->subscription_plan_id = 1;
+        // $subscriber->payment_method = 'credit-card';
+        // $subscriber->status = 'active';
+        // $subscriber->save();
+
+        // echo $subscriber->id;
     }
 
     /**

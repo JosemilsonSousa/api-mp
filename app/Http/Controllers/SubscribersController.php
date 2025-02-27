@@ -68,7 +68,7 @@ class SubscribersController extends Controller
         return Inertia::render('Subscriber', [
             'subscriber'=> $subscriber,
             'invoces'   => $subscriber->invoces,
-            'user'      => $subscriber->user->name,
+            'user'      => $subscriber->user,
             'plan'      => $subscriber->subscription->reason,
         ]);
     }

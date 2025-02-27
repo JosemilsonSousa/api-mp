@@ -89,6 +89,8 @@ class MercadoPago
         return self::$callBack;
     }
 
+    
+
     /**
      * Method responsible for sending the request
      * @param self::$url.

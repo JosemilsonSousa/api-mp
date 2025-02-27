@@ -4,6 +4,7 @@ use App\Http\Controllers\SubscriptionsPlansController as SubscriptionsPlans;
 use App\Http\Controllers\SubscribersController as Subscribers;
 use App\Http\Controllers\InvocesController as Invoces;
 use App\Http\Controllers\GetWay\GetWayController;
+use App\Http\Controllers\GetWay\MercadoPagoController;
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
@@ -34,11 +35,14 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::controller(Subscribers::class)->group(function () {
-        Route::get('/dashboard/assinantes',     'index')->name('dash.assinantes');
-        Route::get('/dashboard/assinar-plano',  'create')->name('dash.assinar.plano');
-        Route::get('/dashboard/assinatura/{subscriber}',  'show')->name('dash.assinatura.plano');
+        Route::get('/dashboard/assinantes',             'index')->name('dash.assinantes');
+        Route::get('/dashboard/assinar-plano',          'create')->name('dash.assinar.plano');
+        Route::get('/dashboard/assinatura/{subscriber}','show')->name('dash.assinatura.plano');
     });
 
+    Route::controller(MercadoPagoController::class)->group(function () {
+        Route::get('/dashboard/create-preference','createPreference')->name('dash.create.preference');
+    });
 });
 
 

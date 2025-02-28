@@ -30,9 +30,8 @@ class SubscriptionsPlansController extends Controller
     public function create()
     {
         $data = (object) [
-            'amount' => "3.00",
-            'reason' => "Assinatura SysEBD - 3",
-            'xIdempotencyKey' => ''
+            'amount' => "1.25",
+            'reason' => "Assinatura SysEBD",
         ];
 
         $back = MercadoPago::createPlan($data);
@@ -58,16 +57,6 @@ class SubscriptionsPlansController extends Controller
         $plan->save();
 
         return redirect()->route('dash.planos');
-
-        // $subscriber = new Subscriber;
-        // $subscriber->user_id = 1;
-        // $subscriber->church_id = 1;
-        // $subscriber->subscription_plan_id = 1;
-        // $subscriber->payment_method = 'credit-card';
-        // $subscriber->status = 'active';
-        // $subscriber->save();
-
-        // echo $subscriber->id;
     }
 
     /**

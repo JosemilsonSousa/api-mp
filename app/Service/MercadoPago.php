@@ -29,7 +29,6 @@ class MercadoPago
 
     public static function createPlan($data)
     {
-        self::$token = ENV('MP_TOKEN');
         self::$verb  = "POST";
         self::$url   = "https://api.mercadopago.com/preapproval_plan";
         self::$data  = [
@@ -69,34 +68,79 @@ class MercadoPago
         return self::$callBack;
     }
 
-    public static function payPix()
+    /**
+     * -----------------------------------------------------------------------------------------
+     * Method responsible for create ticket
+     * @param $data
+     * @return self::$callBack.
+     * -----------------------------------------------------------------------------------------
+     */
+    public static function ticket($data)
     {
-        self::$verb = "POST";
-        self::$url  = "https://api.mercadopago.com/v1/payments";
-        self::$data = [
-            'callback_url' => "http://localhost/pagamento-concluido",
-            'description'  => "Assinatura Admin Church",
-            'external_reference' => "MP0001",
-            'payer' => [
-                'email' => "rbedasilva@gmail.com",
-                'identification' => [ 'type' => "CPF", 'number' => "02652831321" ]
-            ],
-            'payment_method_id'  => "pix",
-            'transaction_amount' => 0.25
+        self::$verb  = "POST";
+        self::$url   = "https://api.mercadopago.com/v1/payments";
+        self::$data  = [
+            "external_reference" => "invoce-",
+            "transaction_amount" => 1.00,
+            "description"        => "Título do produto",
+            "payment_method_id"  => "bolbradesco",
+            "payer" => [
+                "email"          => "rbedasilva@gmail.com",
+                "first_name"     => "Raimunda",
+                "last_name"      => "Bezerra",
+                "identification" => [
+                    "type"       => "CPF",
+                    "number"     => "02652831321"
+                ],
+                "address" => [
+                    "zip_code"      => "65620000",
+                    "street_name"   => "Rua Sebastiao Pinto Machado",
+                    "street_number" => "33",
+                    "neighborhood"  => "Centro",
+                    "city"          => "Coelho Neto",
+                    "federal_unit"  => "MA"
+                ]
+            ]
         ];
 
         self::$callBack = self::post();
         return self::$callBack;
     }
 
-    
+
+    /**
+     * -----------------------------------------------------------------------------------------
+     * Methodo responsible for create qrCode pix
+     * @param $data
+     * @return self::$callBack.
+     * -----------------------------------------------------------------------------------------
+     */
+    public static function pix($data)
+    {
+        self::$verb  = "POST";
+        self::$url   = "https://api.mercadopago.com/v1/payments";
+        self::$data  = [
+            'external_reference' => "invoce-{$data->reference}",
+            'description'        => $data->description,
+            'transaction_amount' => (float) $data->amount,
+            'payment_method_id'  => "pix",
+            'payer' => ['email'  => $data->email],
+            'callback_url'       => ENV('MP_BACK_URL'),
+            'notification_url'   => ENV('MP_NOTIFICATION_URL'),
+        ];
+
+        self::$callBack = self::post();
+        return self::$callBack;
+    }
+
+
 
     /**
      * Method responsible for sending the request
      * @param self::$url.
      * @param self::$verb.
      * @param self::$data.
-     * @param self::getToken().
+     * @param self::token
      * @return self::$callBack.
      */
     private static function post()
@@ -117,7 +161,7 @@ class MercadoPago
         curl_setopt($url, CURLOPT_HTTPHEADER, array(
             'Content-Type: application/json',
             'X-Idempotency-Key: ' . self::get_xIdempotencyKey(),
-            'Authorization: Bearer ' . self::$token
+            'Authorization: Bearer ' . ENV('MP_TOKEN')
         ));
 
         return curl_exec($url);

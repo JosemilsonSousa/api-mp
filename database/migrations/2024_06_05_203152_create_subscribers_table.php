@@ -23,15 +23,8 @@ return new class extends Migration
 
             $table->timestamps();
                 
-            $table->foreign('user_id')
-                ->references('id')
-                ->on('users')
-                ->onDelete('cascade');
-
-            $table->foreign('subscription_plan_id')
-                ->references('id')
-                ->on('subscriptions_plans')
-                ->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('subscription_plan_id')->references('id')->on('subscriptions_plans');
         });
     }
 

@@ -1,8 +1,9 @@
 <script setup>
     import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
     import { Head, Link } from '@inertiajs/vue3';
-    import { onMounted } from 'vue';
-    import { loadMercadoPago } from '@mercadopago/sdk-js';
+    import { ref, onMounted } from 'vue';
+    import { loadMercadoPago, bricksBuilder } from '@mercadopago/sdk-js';
+    import { hermes, getData } from './Scripts/support.js';
 
     const props = defineProps({
         subscriber: { type: Array },
@@ -12,44 +13,71 @@
         publicKey:  { type: String },
     });
 
-    console.log(props.user.email);
-    const openModal = ()=>{
+    const invoce = ref(null);
+
+    const sendPix = async () => {
+        // console.log(invoce.value);
+        var back  = await hermes(route('dash.invoce.pay.pix', invoce.value), '');
+    }
+
+    const openModal = (code)=>{
+        invoce.value = code
         var modal = document.getElementById("myModal");
         modal.style.display = "block";
+        // renderWalletBrick();
     }
+
     const closeModal = ()=>{
         var modal = document.getElementById("myModal");
         modal.style.display = "none";
     }
-    
+
     // Função para renderizar o Wallet Brick
     const renderWalletBrick = async () => {
         // Carrega a SDK do MercadoPago
         await loadMercadoPago();
-
-        // Inicializa o MercadoPago com sua chave pública
-        const mp = new window.MercadoPago(props.publicKey, {
-            locale: 'pt-BR', // Idioma (opcional)
-        });
-
-        // Obtém o builder de Bricks
-        const bricksBuilder = mp.bricks();
+        const mp = new window.MercadoPago(props.publicKey);// Inicializa o MercadoPago com sua chave pública
+        const bricksBuilder = mp.bricks();// Obtém o builder de Bricks
 
         // Renderiza o Wallet Brick
         bricksBuilder.create('cardPayment', 'cardPayment_container', {
             initialization: {
                 amount: 100.0,
                 payer: {   
-                    identification: {
-                        "type": "CPF",
-                        "number": props.user.doc,
-                    },
+                    identification: {"type": "CPF", "number": props.user.doc,},
                     email: props.user.email,
+                },
+            },
+            customization: {
+                paymentMethods: {
+                    // ticket: "all",
+                    bankTransfer: "all",
+                    // creditCard: "all",
                 },
             },
             callbacks: {
                 onReady: () => {
                     console.log('Wallet Brick está pronto!');
+                },
+
+                onSubmit: ({ selectedPaymentMethod, formData }) => {
+                    // callback chamado ao clicar no botão de submissão dos dados
+                    return new Promise((resolve, reject) => {
+                        fetch("/process_payment", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json",},
+                            body: JSON.stringify(formData),
+                        })
+                        .then((response) => response.json())
+                        .then((response) => {
+                            // receber o resultado do pagamento
+                            resolve();
+                        })
+                        .catch((error) => {
+                            // lidar com a resposta de erro ao tentar criar o pagamento
+                            reject();
+                        });
+                    });
                 },
                 onError: (error) => {
                     console.error('Erro no Wallet Brick:', error);
@@ -58,10 +86,6 @@
         });
     };
 
-    // Quando o componente é montado, renderiza o Brick
-    onMounted(() => {
-        renderWalletBrick();
-    });
 
 </script>
 
@@ -116,7 +140,9 @@
                                     <td class="p-3 border border-gray-900">Testando o som</td>
                                     <td class="p-3 border border-gray-900 text-center">{{ invoce.status }}</td>
                                     <td class="p-3 border border-gray-900 text-center">
-                                        <button id="openModal" @click="openModal">Pagar</button>
+                                        <button id="openModal" @click="openModal(invoce.id)"
+                                            class="p-2 rounded-md bg-green-700 hover:bg-green-600 text-green-50" 
+                                        >Pagar</button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -128,9 +154,31 @@
         </div>
 
         <div id="myModal" class="modal">
-            <div class="modal-content">
-                <span class="close" @click="closeModal">&times;</span>
-                <div id="cardPayment_container"></div>
+            <div class="modal-content rounded-md ">
+                
+                <div class="header p-2 flex justify-between items-center rounded-t-md bg-cyan-500">
+                    <h1>Tela de Pagamento</h1>
+                    <span class="close" @click="closeModal">X</span>
+                </div>
+
+                <div class="body p-4">
+                    <div class="choose_pay flex justify-between">
+                        <div class="w-3xs bg-green-50 shadow-sm p-5 rounded-md">
+                            <button @click="sendPix">Cartão</button>
+                        </div>
+                        <div class="w-3xs bg-green-50 shadow-sm p-5 rounded-md">
+                            Pix
+                        </div>
+                        <div class="w-3xs bg-green-50 shadow-sm p-5 rounded-md">
+                            Boleto
+                        </div>
+                    </div>
+
+                    <div id="pixPayment_container"></div>
+                    <div id="cardPayment_container"></div>
+                    <div id="bolPayment_container"></div>
+                </div>
+
             </div>
         </div>
 
@@ -138,42 +186,30 @@
 </template>
 
 <style scoped>
-    /* Estilo do fundo escuro quando a modal está aberta */
     .modal {
-        display: none; /* Escondido por padrão */
-        position: fixed; /* Fica fixo na tela */
-        z-index: 1; /* Fica por cima de outros elementos */
-        left: 0;
+        position: fixed;
+        z-index: 100;
         top: 0;
-        width: 100%; /* Largura total */
-        height: 100%; /* Altura total */
-        overflow: auto; /* Habilita scroll se necessário */
-        background-color: rgb(0, 0, 0); /* Cor de fundo */
-        background-color: rgba(0, 0, 0, 0.5); /* Fundo escuro com transparência */
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        transition: opacity 0.3s ease;
     }
 
-    /* Estilo do conteúdo da modal */
     .modal-content {
-        background-color: #fefefe;
-        margin: 2% auto; /* Centraliza a modal na tela */
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%; /* Largura do conteúdo */
-        max-width: 600px; /* Largura máxima */
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        position: relative;
+        width: 500px;
+        margin: auto;
+        background-color: #fff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
+        transition: all 0.3s ease;
     }
-    .modal-content span{
-        position: absolute;
-        right: 10px;
-        top: -5px;
-    }
-    /* Estilo do botão de fechar */
+
     .close {
-        color: #aaa;
+        color: #fff;
         float: right;
-        font-size: 28px;
+        font-size: 1em;
         font-weight: bold;
     }
 

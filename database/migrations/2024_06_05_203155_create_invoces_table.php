@@ -14,19 +14,17 @@ return new class extends Migration
         Schema::create('invoces', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('subscriber_id')->nullable();
+            $table->bigInteger('payment_id')->nullable();
 
             $table->string('payment_method_id')->nullable();
             $table->string('payment_type_id')->nullable();
             $table->string('currency_id')->nullable();
             $table->string('description')->nullable();
             $table->string('taxes_amount')->nullable();
-            $table->string('shipping_amount')->nullable();
             $table->string('payer_email')->nullable();
-            $table->string('payer_identification_number')->nullable();
-            $table->string('payer_identification_type')->nullable();
             $table->string('type')->nullable();
             $table->string('status')->nullable();
-            $table->string('statement_descriptor')->nullable();
+            $table->string('status_detail')->nullable();
 
             $table->decimal('transaction_amount',8,2)->nullable();
             $table->decimal('net_received_amount',8,2)->nullable();
@@ -43,7 +41,7 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->foreign('subscriber_id')->references('id')->on('subscribers')->onDelete('cascade');
+            $table->foreign('subscriber_id')->references('id')->on('subscribers');
         });
     }
 

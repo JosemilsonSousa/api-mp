@@ -22,7 +22,7 @@ class UserController extends Controller
         $user->email    = $request->email;
         $user->doc      = $request->doc;
         $user->password = Hash::make($request->email);
-        
+
         $user->save();
 
         return response()->json(['user' => $user]);
@@ -35,7 +35,8 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
-        //
+        $user->fill($request->all())->save();
+        return response()->json(['user' => $user]);
     }
 
     public function destroy(User $user)

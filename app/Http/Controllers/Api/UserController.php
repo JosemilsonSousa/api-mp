@@ -35,7 +35,11 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
-        $user->fill($request->all())->save();
+        $user->update([
+            'name'  => $request->name,
+            'email' => $request->email,
+            'doc'   => $request->doc,
+        ]);
         return response()->json(['user' => $user]);
     }
 

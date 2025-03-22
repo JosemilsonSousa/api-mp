@@ -35,6 +35,7 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        dd($request->all());
         $user->update([
             'name'  => $request->name,
             'email' => $request->email,

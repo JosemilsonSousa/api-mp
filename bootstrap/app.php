@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->validateCsrfTokens(except: [
             'https://apimp.inforaison.com.br/api/v1/user',
+            'https://apimp.inforaison.com.br/api/v1/user/{user}',
         ]);
         //
     })

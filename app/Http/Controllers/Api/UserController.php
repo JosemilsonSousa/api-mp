@@ -35,13 +35,8 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
-        dd($request->all());
-        $user->update([
-            'name'  => $request->name,
-            'email' => $request->email,
-            'doc'   => $request->doc,
-        ]);
-        return response()->json(['user' => $user]);
+        $user->fill($request->validated())->save();
+        return response()->json(['user' => User::find($user->id)]);
     }
 
     public function destroy(User $user)

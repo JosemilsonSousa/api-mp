@@ -13,3 +13,6 @@ Route::prefix('api/v1')->group(function () {
 	    Route::delete('/user/{user}', 'destroy');
 	});
 });
+Route::get('/csrf-token', function () {
+    return response()->json(['csrf_token' => csrf_token()]);
+});

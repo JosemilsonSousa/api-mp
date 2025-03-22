@@ -35,7 +35,7 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
-        $user->fill($request->validated())->save();
+        $user->fill($request->all())->save();
         return response()->json(['user' => User::find($user->id)]);
     }
 

@@ -16,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
         $middleware->validateCsrfTokens(except: [
-            'http://localhost:5174',
+            'https://apimp.inforaison.com.br/api/v1/user',
         ]);
         //
     })
